@@ -256,10 +256,6 @@ VulnStatus : Not Vulnerable
 
 As a result we have MS16-032, MS16-034 and MS16-135 that we should try to exploit.
 
-MS16-032: Secondary Logon Handle Privilege Escalation 
-MS16-034: Windows Kernel-Mode Drivers to Address Elevation of Privilege
-MS16-135: Windows Kernel-Mode Drivers 
-
 ## System hacking
 
 ### MS16-032 (CVE-2016-0099)
@@ -413,6 +409,16 @@ C:\Users\kostas\Desktop>whoami
 whoami
 nt authority\system
 
+c:\Users\kostas\Desktop>dir c:\users\Administrator\Desktop\root.txt
+dir c:\users\Administrator\Desktop\root.txt
+ Volume in drive C has no label.
+ Volume Serial Number is D0BC-0196
+
+ Directory of c:\users\Administrator\Desktop
+
+18/03/2017  02:14 ��                32 root.txt
+               1 File(s)             32 bytes
+               0 Dir(s)  31.898.181.632 bytes free
 
 ```
 
