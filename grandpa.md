@@ -367,6 +367,8 @@ However, the exploit as such did not seem to work.
 
 ### Churrasco
 
+Credits go to: https://github.com/egre55/windows-kernel-exploits
+
 Rinse and repeat to fetch the file, fetch also nc.exe.
 
 ```
