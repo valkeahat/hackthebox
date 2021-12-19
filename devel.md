@@ -1,4 +1,4 @@
-# Hackthebox Legacy
+# Hackthebox Devel
 
 Reset the machine just in case.
 
