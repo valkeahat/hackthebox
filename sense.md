@@ -217,7 +217,7 @@ And we can login to pfsense with username "rohit" and password "pfsense", which 
 ## Vulnerability analysis
 
 ### PFSense
-
+```
 ------------------------------------------------------------------------------------------ ---------------------------------
  Exploit Title                                                                            |  Path
 ------------------------------------------------------------------------------------------ ---------------------------------
@@ -246,7 +246,7 @@ pfSense Firewall 2.2.5 - Config File Cross-Site Request Forgery                 
 pfSense Firewall 2.2.6 - Services Cross-Site Request Forgery                              | php/webapps/39695.txt
 pfSense UTM Platform 2.0.1 - Cross-Site Scripting                                         | freebsd/webapps/24439.txt
 ------------------------------------------------------------------------------------------ ---------------------------------
-
+```
 
 ## Initial access
 
