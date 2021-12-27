@@ -250,7 +250,7 @@ pfSense UTM Platform 2.0.1 - Cross-Site Scripting                               
 
 ## Initial access
 
-### CVE-2016-10709
+### CVE-2014-4688
 
 First test the vulnerability using Metasploit.
 
