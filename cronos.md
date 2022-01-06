@@ -84,7 +84,7 @@ admin' or '1'='1
 
 as a username works. After logging in we are treated with a submit form for a Net Tool v0.1.
 
-Since SQL injection seems to work do some more investigation with sqlmap
+Since SQL injection seems to work do some more investigation with sqlmap. This is not strictly needed for the machine but good exercise.
 
 Databases
 
@@ -293,8 +293,7 @@ With psspy we can identify some scheduled activities that might be of interest
 2022/01/06 19:55:01 CMD: UID=0    PID=4873   | /usr/sbin/CRON -f 
 ```
 
-
-## Privilege Escalation www-data to noulis
+## Privilege Escalation www-data to root
 
 Php-script /var/www/laravel/artisan is executed periodically as a root. We also have write permissions to it. Replace the script by php reverse shell, wait for the next execution, and our listener gets a shell
 
